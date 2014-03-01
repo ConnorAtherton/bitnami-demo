@@ -6,7 +6,8 @@
     "gzippo": "~0.2.0",
     "express": "~3.4.0",
     "path": "~0.4.9",
-    "bower": "0.6.x"
+    "bower": "0.6.x",
+    "socket.io": "~0.9.16"
   },
   "devDependencies": {
     "gulp-util": "~2.2.13",
