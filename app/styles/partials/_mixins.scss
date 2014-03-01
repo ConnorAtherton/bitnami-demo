@@ -1,0 +1,14 @@
+@mixin custom-horiz-sep($num) {
+  $chr: "x";
+  $content: $chr;
+  @for $i from 0 to $num {
+      $content: $content + $chr;
+  }
+
+}
+
+// create a mixin for the top border
+// to have a linear gradient
+@mixin createBorder($colour) {
+	
+}

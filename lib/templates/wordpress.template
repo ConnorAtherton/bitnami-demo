@@ -1,0 +1,125 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+
+  "Description" : "The Bitnami WordPress 3.8.1: WordPress is one of the world's most popular web publishing platforms for building blogs and websites. It can be customized via a wide selection of themes, extensions and plug-ins. For more information, please visit:  http://bitnami.com.",
+
+  "Parameters" : {
+    "BitnamiInstanceType" : {
+      "Default" : "t1.micro",
+      "Type" : "String",
+      "Description" : "The type of EC2 instances"
+    },
+    "KeyName": {
+      "Description" : "Name of an existing EC2 KeyPair to enable SSH access",
+      "Type": "String",
+      "Default" : "default"
+    },
+    "BitnamiUser" : {
+      "Default" : "user",
+      "Type" : "String",
+      "Description" : "The Bitnami WordPress user login"
+    },
+    "BitnamiPassword" : {
+      "Default" : "bitnami",
+      "Type" : "String",
+      "Description" : "The Bitnami WordPress user password (minimum 6 characters, default value: bitnami )",
+      "NoEcho" : "TRUE"
+    },
+    "BitnamiEmail" : {
+      "Default" : "user@example.com",
+      "Description" : "The Bitnami WordPress user email",
+      "Type" : "String"
+    },
+    "BitnamiUserName" : {
+      "Default" : "Bitnami User",
+      "Description" : "The Bitnami WordPress user full name",
+      "Type" : "String"
+    }
+  },
+  "Resources" : {
+    "BitnamiSecurityGroup" : {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Allow HTTP/SSH to Bitnami machine.",
+        "SecurityGroupIngress" : [ {
+          "IpProtocol" : "tcp",
+          "FromPort" : "80",
+          "ToPort" : "80",
+          "CidrIp" : "0.0.0.0/0"
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "443",
+          "ToPort" : "443",
+          "CidrIp" : "0.0.0.0/0"
+        }, {
+          "IpProtocol" : "tcp",
+          "FromPort" : "22",
+          "ToPort" : "22",
+          "CidrIp" : "0.0.0.0/0"
+        } ]
+      }
+    },
+    "BitnamiServer" : {
+      "Type" : "AWS::EC2::Instance",
+      "Properties" : {
+        "ImageId" : { "Fn::FindInMap": [ "AWSRegionArch2AMI", { "Ref": "AWS::Region" }, { "Fn::FindInMap": [ "AWSInstanceType2Arch", {"Ref": "BitnamiInstanceType" },"Arch" ] } ]},
+        "KeyName" : {"Ref": "KeyName"},
+        "SecurityGroups" : [ { "Ref" : "BitnamiSecurityGroup" } ],
+        "UserData" : { "Fn::Base64" : { "Fn::Join" : [ "", [
+          "#!/bin/sh\n",
+          "cat > /tmp/stack_properties.ini <<EOF\n",
+          "base_user=",{ "Ref" : "BitnamiUser" }, "\n",
+          "base_user_name=",{ "Ref" : "BitnamiUserName" }, "\n",
+          "base_mail=",{ "Ref" : "BitnamiEmail" }, "\n",
+          "base_password=",{ "Ref" : "BitnamiPassword" }, "\n",
+          "EOF\n",
+          "\n",
+          "\n",
+          "/opt/bitnami/mysql/bin/mysqladmin -p'bitnami' -u root password '", { "Ref" : "BitnamiPassword" }, "'\n",
+          "\n",
+          "curl --capath /etc/ssl/certs/ --retry 3 -sS  -o /tmp/stack.bin -L --max-redirs 3 http://downloads.bitnami.com/files/stacks/wordpress/3.8.1-1/bitnami-wordpress-3.8.1-1-module-linux-x64-installer.run\n",
+          "chmod +x /tmp/stack.bin\n",
+          "/tmp/stack.bin --mode unattended --prefix /opt/bitnami --optionfile /tmp/stack_properties.ini\n",
+          "\n",
+          "/opt/bitnami/scripts/init/update_ip\n",
+          "rm -f /tmp/stack.bin \n",
+          "rm -f /tmp/stack_properties.ini\n",
+          "\n"
+         ] ] } },
+        "InstanceType" : { "Ref" : "BitnamiInstanceType" },
+        "Tags" : [ {
+          "Key" : "Name",
+          "Value" : "The Bitnami WordPress 3.8.1"
+        } ]
+      }
+    },
+    "BitnamiIP" : {
+      "Type" : "AWS::EC2::EIP",
+      "Properties" : {
+        "InstanceId" : { "Ref" : "BitnamiServer" }
+      }
+    }
+
+  },
+  "Mappings": {
+    "AWSInstanceType2Arch" : {
+      "t1.micro"    : { "Arch" : "64" },
+      "m1.small"    : { "Arch" : "64" },
+      "m1.medium"   : { "Arch" : "64" },
+      "m1.large"    : { "Arch" : "64" },
+      "m2.xlarge"   : { "Arch" : "64" },
+      "c1.medium"   : { "Arch" : "64" },
+      "c1.xlarge"   : { "Arch" : "64" },
+      "m1.xlarge"   : { "Arch" : "64" },
+      "m2.2xlarge"  : { "Arch" : "64" },
+      "m2.4xlarge"  : { "Arch" : "64" }
+    },
+    "AWSRegionArch2AMI" : {"ap-northeast-1":{"64":"ami-7d3c4a7c"},"ap-southeast-1":{"64":"ami-387a2b6a"},"ap-southeast-2":{"64":"ami-97831aad"},"eu-west-1":{"64":"ami-6be5171c"},"sa-east-1":{"64":"ami-f39d3eee"},"us-east-1":{"64":"ami-1b909372"},"us-west-1":{"64":"ami-9098a4d5"},"us-west-2":{"64":"ami-24a3cf14"}}
+  },
+  "Outputs" : {
+    "URL" : {
+      "Description" : "URL of the Bitnami WordPress 3.8.1 server:",
+      "Value" : { "Fn::Join" : [ "", [ "http://", { "Ref" : "BitnamiIP" } ] ] }
+    }
+  }
+}

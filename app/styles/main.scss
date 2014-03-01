@@ -1,0 +1,44 @@
+// imports
+@import "compass/reset";
+@import "partials/typography.scss";
+@import "partials/animations.scss";
+@import "partials/form";
+
+* {
+	box-sizing: border-box;
+}
+
+html, body {
+	width: 100%;
+	min-height: 100%;
+	margin: 0;
+}
+
+body
+{
+	background-color: #eee;
+	color: #302c29;
+	font-size: 1em;
+}
+
+a
+{
+	color: #302c29;
+}
+
+#container {
+	padding: 50px 0;
+	width: 95%;
+	max-width: 600px;
+	margin: auto;
+	text-align: center;
+}
+
+
+
+
+
+
+
+
+
