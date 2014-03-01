@@ -5,9 +5,19 @@ var socket = io.connect('http://localhost');
 socket.on('news', function (data) {
   console.log(data);
 });
-socket.on('instance data status', function (data) {
-  console.log(data);
-});
+// socket.on('instance data status', function (data) {
+//   console.log('state data', data['Reservations'][0]['Instances'][0]['State']);
+// });
+socket.on('state', function(data) {
+  console.log('State data:', data);
+  if(data.state === 'running') {
+    instanceRunning();
+  } else if(data.state === 'terminated') {
+    instanceTerminated();
+  } else if(data.state === 'pending'){
+    instanceInitializing(data);
+  }
+})
 
 // taken from this object
 // http://stackoverflow.com/questions/1184624/convert-form-data-to-js-object-with-jquery
@@ -48,11 +58,24 @@ $(function() {
 
     // gather up form data
     var data = $form.serializeObject();
+    console.log('Credentials object', data);
     // send through websockets
     sendCredentials(data);
   });
 });
 
-function sendCredentials(json) {
-  socket.emit('formSubmission' , json);
+function sendCredentials(data) {
+  socket.emit('formSubmission' , data);
+}
+
+function instanceInitializing(data) {
+  console.log('instance is initializing')
+}
+
+function instanceRunning(data) {
+  console.log('instance is running');
+}
+
+function instanceTerminated(data) {
+  console.log('instance has been terminated')
 }
