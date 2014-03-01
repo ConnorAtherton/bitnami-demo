@@ -101,6 +101,9 @@ $(function() {
 
   function instanceTerminated(data) {
     $container.html(serverStoppedTemplate());
+    $('#restart').on('click', function() {
+      window.location.reload();
+    })
     console.log('instance has been terminated for good.....');
   }
 

@@ -5,6 +5,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Bitnami demo</title>
         <meta content="width=device-width, minimum-scale=1.0, maximum-scale=1.0" name="viewport" />
+        <link href='http://fonts.googleapis.com/css?family=Lato:700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="styles/main.css">
     </head>
     <body>
@@ -14,25 +15,28 @@
         <script id="initialForm" type="text/x-handlebars-template">
             <h2>Bitnami demo</h2>
             <form>
-                <input type="text" name="accessKeyId">
-                <input type="text" name="secretAccessKey">
-                <button id="createAMI">Create Wordpress AMI</button>
+                <input type="text" name="accessKeyId" placeholder="Access Key">
+                <input type="password" name="secretAccessKey" placeholder=" Secret Access Key">
+                <div id="createAMI" class="button">Create Wordpress AMI</div>
             </form>
         </script>
 
         <script id="serverInitializing" type="text/x-handlebars-template">
             <h2>Your server is initializing...</h2>
+
+            <h4>This may take a while. Why don't you open the console and take a look at each request?</h3>
+            <h4>If nothing is happening make sure you have no security rule called <span class="blue">bitnamiDemo</span>.</h4>
         </script>
 
         <script id="serverReady" type="text/x-handlebars-template">
-            Your server is ready.
+            <h2>Your instance is ready. Hooray!!</h2>
             <a href="http://{{link}}" id="serverLink">Click here to view it</a>
-            <button id="stopServer" data-id="{{id}}">Stop server instance</button>
+            <div id="stopServer" data-id="{{id}}" class="button">Stop instance</div>
         </script>
 
         <script id="serverStopped" type="text/x-handlebars-template">
-            Your instance has been stopped.
-            This is the last template to be displayed.
+            <h2>Your instance has been stopped.</h2>
+            <div id="restart" class="button">Launch another instance</div>
         </script>
 
         <footer>

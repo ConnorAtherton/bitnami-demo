@@ -32,7 +32,7 @@ io.sockets.on('connection', function (socket) {
 
     console.log('Should launch the instance now');
 
-    bitnami.launchInstance('bitnami security group', 'SecurityGroup9', function(err, data) {
+    bitnami.launchInstance('bitnami demo security group', 'BITNAMIDEMO', function(err, data) {
       if(err) {
         return console.log(err);
       } else {

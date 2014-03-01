@@ -13,25 +13,24 @@ html, body {
 	width: 100%;
 	min-height: 100%;
 	margin: 0;
+	font-family: 'Lato', sans-serif;
 }
 
-body
-{
+body {
 	background-color: #eee;
 	color: #302c29;
 	font-size: 1em;
 }
 
-a
-{
-	color: #302c29;
+a {
+	color: #60B7E1;
 }
 
 #container {
 	padding: 50px 0;
 	width: 95%;
 	max-width: 600px;
-	margin: auto;
+	margin: 80px auto;
 	text-align: center;
 }
 
