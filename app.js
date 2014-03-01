@@ -30,12 +30,15 @@ io.sockets.on('connection', function (socket) {
       secretAccessKey: data.secretAccessKey
     });
 
-    bitnami.launchInstance('bitnami security group', 'bitnamiDemo', function(err, data) {
+    console.log('Should launch the instance now');
+
+    bitnami.launchInstance('bitnami security group', 'SecurityGroup9', function(err, data) {
       if(err) {
         return console.log(err);
       } else {
         instanceData = data;
-        console.log('Instance id is', instanceData);
+
+        console.log('The instance should have been created by now', data)
 
         intervalId = setInterval(function() {
           updateClient(instanceData, socket);
@@ -44,8 +47,18 @@ io.sockets.on('connection', function (socket) {
     });
 
     // intervalId = setInterval(function() {
-    //   updateClient('i-6c06e74f', socket);
-    // }, 2000); // poll every half second
+    //   updateClient('i-11826232', socket);
+    // }, 2000); // poll every second
+  });
+
+  // Used to stop the servers
+  socket.on('stopInstance', function(data) {
+    console.log('Should be stopping the instance right about now', data.instanceId);
+    bitnami.stopInstance(data.instanceId, function(err, data) {
+      if(err) return console.log(err);
+
+      socket.emit('state', { state: 'terminated' });
+    });
   });
 });
 
@@ -57,22 +70,68 @@ io.sockets.on('connection', function (socket) {
 
 function updateClient(instanceData, socket) {
 
+  console.log('Updating the client', instanceData);
+
   // check the status of the instance
   bitnami.checkInstanceStatus(instanceData, function(err, data) {
     if(err) console.log(err);
 
+    console.log('CHECK INSTANCE STATUS', data);
+
+    socket.emit('state', data);
+
+    if (data['InstanceStatuses'].length === 0) {
+      // for some reason we have to wait a long time for
+      // describeInstanceStatus() to return something
+      // once a new instance has been created
+      console.log('Return and wait to try again...');
+      return;
+    };
+
     // if the instance is running...
-    if(data['Reservations'][0]['Instances'][0]['State']['Name'] === 'running') {
+    if(data['InstanceStatuses'][0]['InstanceState']['Name'] === 'running') {
       // emit the socket state event that it is running and supply the link
       // and instance id so it can be stopped
       console.log('STATE: IT IS RUNNING');
+
+      // REMOVE THIS!!
       socket.emit('state', {
-        state: data['Reservations'][0]['Instances'][0]['State']['Name'],
-        link: data['Reservations'][0]['Instances'][0]['PublicDnsName'],
-        id: data['Reservations'][0]['Instances'][0]['InstanceId']
+        state: data['InstanceStatuses'][0]['InstanceState']['Name'],
+        availibility: data['InstanceStatuses'][0]['InstanceStatus']['Status'],
+        id: data['InstanceStatuses'][0]['InstanceId']
       });
-      // stop the interval because our server is running
-      clearInterval(intervalId);
+
+      // not only does the server have to be running
+      // but it must also be reachable, if it isn't we
+      // keep waiting
+      if (data['InstanceStatuses'][0]['InstanceStatus']['Status'] === 'ok') {
+        console.log('INSTANCE REACHABLE!!');
+
+        // this needs to be here or else data is replaced by the locally scoped
+        // data in agetPublicDNS() nd we get a ReferenceError
+        var status = data;
+
+        // this is a bit of a hack but we need to get the publicDNS so we can link
+        // it in the application. We could have checked earlier but it isn't available
+        // through the API until the instance is actually running.
+
+        bitnami.getPublicDNS(instanceData, function(err, data) {
+          if(err) return console.log(err);
+
+          console.log('The public dns is', data['Reservations'][0]['Instances'][0]['PublicDnsName']);
+
+          socket.emit('state', {
+            state: status['InstanceStatuses'][0]['InstanceState']['Name'],
+            availibility: status['InstanceStatuses'][0]['InstanceStatus']['Status'],
+            link: data['Reservations'][0]['Instances'][0]['PublicDnsName'],
+            id: status['InstanceStatuses'][0]['InstanceId']
+          });
+        });
+
+        // stop the interval because our server is running
+        clearInterval(intervalId);
+      };
+
     } else {
       console.log('STATE: IT IS NOT RUNNING');
       socket.emit('state', { state: data['Reservations'][0]['Instances'][0]['State']['Name'] });

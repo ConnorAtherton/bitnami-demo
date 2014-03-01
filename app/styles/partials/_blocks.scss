@@ -1,0 +1,15 @@
+.blockWrap {
+  float: left;
+}
+
+.block {
+  background-color: #FFF;
+  margin: 50px auto;
+  padding: 40px;
+  min-height: 500px;
+  position: relative;
+  -ms-border-radius: 3px;
+  -o-border-radius: 3px;
+  border-radius: 3px;
+  box-shadow: rgba(0, 0, 0, 0.4) 0 2px 6px;
+}

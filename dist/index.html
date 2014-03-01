@@ -9,24 +9,31 @@
     </head>
     <body>
 
-        <div id="container">
-            <div class="block-1">
-                <h2>Bitnami demo</h2>
-                <form>
-                    <input type="text" name="accessKeyId">
-                    <input type="text" name="secretAccessKey">
-                    <button id="createAMI">Create Wordpress AMI</button>
-                </form>
-            </div>
-            <div class="block-2">
-                Your server is initializing...
-            </div>
-            <div class="block-3">
-                Your server is ready. Here is your link
-                <a href="">A link</a>
-                <button id="stopServer">Stop server instance</button>
-            </div>
-        </div>
+        <div id="container" class="block"></div>
+
+        <script id="initialForm" type="text/x-handlebars-template">
+            <h2>Bitnami demo</h2>
+            <form>
+                <input type="text" name="accessKeyId">
+                <input type="text" name="secretAccessKey">
+                <button id="createAMI">Create Wordpress AMI</button>
+            </form>
+        </script>
+
+        <script id="serverInitializing" type="text/x-handlebars-template">
+            <h2>Your server is initializing...</h2>
+        </script>
+
+        <script id="serverReady" type="text/x-handlebars-template">
+            Your server is ready.
+            <a href="http://{{link}}" id="serverLink">Click here to view it</a>
+            <button id="stopServer" data-id="{{id}}">Stop server instance</button>
+        </script>
+
+        <script id="serverStopped" type="text/x-handlebars-template">
+            Your instance has been stopped.
+            This is the last template to be displayed.
+        </script>
 
         <footer>
             <!-- Put a symbol for konami code in the footer -->

@@ -25,6 +25,7 @@ var paths = {
   scripts: ['app/scripts/*.js'],
   scriptsVendor: [
                   'app/bower_components/modernizr/modernizr.js',
+                  'app/bower_components/handlebars/handlebars.js',
                  ],
   images: ['app/images/*'],
   html: ['app/*.html'],
