@@ -1,7 +1,7 @@
 $(function() {
   'use strict';
 
-  var socket = io.connect('http://localhost');
+  var socket = io.connect(window.location.hostname);
   socket.on('news', function (data) {
     console.log(data);
   });
@@ -52,7 +52,6 @@ $(function() {
       // add some parsley validation
       // gather up form data
       var data = $form.serializeObject();
-      console.log('Credentials object', data);
       // send through websockets
       sendCredentials(data);
     });
@@ -87,7 +86,7 @@ $(function() {
 
   function instanceInitializing(data) {
     $container.html(serverInitializingTemplate());
-    console.log('instance is initializing')
+    console.log('instance is initializing');
   }
 
   function instanceRunning(data) {

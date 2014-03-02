@@ -21,16 +21,27 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/dist/index.html');
 });
 
+// Heroku won't actually allow us to use WebSockets
+// so we have to setup polling instead.
+// https://devcenter.heroku.com/articles/using-socket-io-with-node-js-on-heroku
+//
+// Could change this back if I decide to deploy somewhere else.
+//
+io.configure(function () {
+  io.set("transports", ["xhr-polling"]);
+  io.set("polling duration", 10);
+})
+
 io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
+  io.sockets.emit('news', { hello: 'world' });
+  // socket.emit('news', { hello: 'world' });
   socket.on('formSubmission', function(data) {
+
     // pass in keys to authentication settings with AWS
     bitnami.init({
       accessKeyId: data.accessKeyId,
       secretAccessKey: data.secretAccessKey
     });
-
-    console.log('Should launch the instance now');
 
     bitnami.launchInstance('bitnami demo security group', 'BITNAMIDEMO', function(err, data) {
       if(err) {
@@ -57,7 +68,8 @@ io.sockets.on('connection', function (socket) {
     bitnami.stopInstance(data.instanceId, function(err, data) {
       if(err) return console.log(err);
 
-      socket.emit('state', { state: 'terminated' });
+      io.sockets.emit('state', { state: 'terminated' });
+      // socket.emit('state', { state: 'terminated' });
     });
   });
 });
@@ -78,7 +90,8 @@ function updateClient(instanceData, socket) {
 
     console.log('CHECK INSTANCE STATUS', data);
 
-    socket.emit('state', data);
+    io.sockets.emit('state', data);
+    // socket.emit('state', data);
 
     if (data['InstanceStatuses'].length === 0) {
       // for some reason we have to wait a long time for
@@ -95,7 +108,13 @@ function updateClient(instanceData, socket) {
       console.log('STATE: IT IS RUNNING');
 
       // REMOVE THIS!!
-      socket.emit('state', {
+      // socket.emit('state', {
+      //   state: data['InstanceStatuses'][0]['InstanceState']['Name'],
+      //   availibility: data['InstanceStatuses'][0]['InstanceStatus']['Status'],
+      //   id: data['InstanceStatuses'][0]['InstanceId']
+      // });
+
+      io.sockets.emit('state', {
         state: data['InstanceStatuses'][0]['InstanceState']['Name'],
         availibility: data['InstanceStatuses'][0]['InstanceStatus']['Status'],
         id: data['InstanceStatuses'][0]['InstanceId']
@@ -120,12 +139,19 @@ function updateClient(instanceData, socket) {
 
           console.log('The public dns is', data['Reservations'][0]['Instances'][0]['PublicDnsName']);
 
-          socket.emit('state', {
+          io.sockets.emit('state', {
             state: status['InstanceStatuses'][0]['InstanceState']['Name'],
             availibility: status['InstanceStatuses'][0]['InstanceStatus']['Status'],
             link: data['Reservations'][0]['Instances'][0]['PublicDnsName'],
             id: status['InstanceStatuses'][0]['InstanceId']
           });
+
+          // socket.emit('state', {
+          //   state: status['InstanceStatuses'][0]['InstanceState']['Name'],
+          //   availibility: status['InstanceStatuses'][0]['InstanceStatus']['Status'],
+          //   link: data['Reservations'][0]['Instances'][0]['PublicDnsName'],
+          //   id: status['InstanceStatuses'][0]['InstanceId']
+          // });
         });
 
         // stop the interval because our server is running
@@ -134,7 +160,8 @@ function updateClient(instanceData, socket) {
 
     } else {
       console.log('STATE: IT IS NOT RUNNING');
-      socket.emit('state', { state: data['Reservations'][0]['Instances'][0]['State']['Name'] });
+      io.sockets.emit('state', { state: data['Reservations'][0]['Instances'][0]['State']['Name'] });
+      // socket.emit('state', { state: data['Reservations'][0]['Instances'][0]['State']['Name'] });
     }
   });
 
