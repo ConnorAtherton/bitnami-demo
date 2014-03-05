@@ -5,9 +5,11 @@ $(function() {
   socket.on('news', function (data) {
     console.log(data);
   });
-  // socket.on('instance data status', function (data) {
-  //   console.log('state data', data['Reservations'][0]['Instances'][0]['State']);
-  // });
+
+  socket.on('error', function (data) {
+    console.log('Error message: ', data.message);
+  });
+
   socket.on('state', function(data) {
     console.log('State data:', data);
     if(data.state === 'running') {
@@ -32,29 +34,29 @@ $(function() {
       $form = null,
       $container = $("#container");
 
-    var initialForm = $('#initialForm').html(),
-        serverInitializing = $('#serverInitializing').html(),
-        serverReady = $('#serverReady').html(),
-        serverStopped = $('#serverStopped').html();
+  var initialForm = $('#initialForm').html(),
+      serverInitializing = $('#serverInitializing').html(),
+      serverReady = $('#serverReady').html(),
+      serverStopped = $('#serverStopped').html();
 
-    var initialFormTemplate = Handlebars.compile(initialForm),
-        serverInitializingTemplate = Handlebars.compile(serverInitializing),
-        serverReadyTemplate = Handlebars.compile(serverReady),
-        serverStoppedTemplate = Handlebars.compile(serverStopped);
+  var initialFormTemplate = Handlebars.compile(initialForm),
+      serverInitializingTemplate = Handlebars.compile(serverInitializing),
+      serverReadyTemplate = Handlebars.compile(serverReady),
+      serverStoppedTemplate = Handlebars.compile(serverStopped);
 
-    // render the first template
-    $container.html(initialFormTemplate());
-    $submit = $('#createAMI');
-    $form = $('form');
+  // render the first template
+  $container.html(initialFormTemplate());
+  $submit = $('#createAMI');
+  $form = $('form');
 
-    $submit.on('click', function(e) {
-      e.preventDefault();
-      // add some parsley validation
-      // gather up form data
-      var data = $form.serializeObject();
-      // send through websockets
-      sendCredentials(data);
-    });
+  $submit.on('click', function(e) {
+    e.preventDefault();
+    // add some parsley validation
+    // gather up form data
+    var data = $form.serializeObject();
+    // send through websockets
+    sendCredentials(data);
+  });
 
   function sendCredentials(data) {
     socket.emit('formSubmission' , data);

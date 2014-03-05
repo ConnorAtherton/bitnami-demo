@@ -1,13 +1,12 @@
-var express = require('express')
-  // , routes = require('./routes')
-  , http = require('http');
+var express = require('express'),
+    http = require('http');
 
-var app = express();
-var server = app.listen(process.env.PORT || 3000);
-var io = require('socket.io').listen(server);
-var bitnami = require('./lib/bitnami.js');
-var intervalId;
-var instanceData;
+var app = express(),
+    server = app.listen(process.env.PORT || 3000),
+    io = require('socket.io').listen(server),
+    bitnami = require('./lib/bitnami.js'),
+    intervalId,
+    instanceData;
 
 app.configure(function() {
   app.use(express.static(__dirname + '/dist'));
@@ -18,6 +17,12 @@ app.configure(function() {
 
 // app.get('/', routes.index);
 app.get('/', function (req, res) {
+  //
+  // Could I clear the credentials on the server
+  // when we hit this index route? This would stop the possibility of
+  // other people launching a server on the previous persons account.
+  // Because the credentials will still be in the system.
+  //
   res.sendfile(__dirname + '/dist/index.html');
 });
 
@@ -33,33 +38,34 @@ io.configure(function () {
 })
 
 io.sockets.on('connection', function (socket) {
+
   io.sockets.emit('news', { hello: 'world' });
+
   // socket.emit('news', { hello: 'world' });
+
   socket.on('formSubmission', function(data) {
 
     // pass in keys to authentication settings with AWS
     bitnami.init({
       accessKeyId: data.accessKeyId,
       secretAccessKey: data.secretAccessKey
+    }, function(err, data) {
+      if(err) return io.sockets.emit('error', { message: err });
+
+      console.log('Beginning the launch sequence in 5....4...3..2.1');
+
+      bitnami.launchInstance('bitnami demo security group', 'BITNAMIDEMO', function(err, data) {
+        if(err) {
+          return console.log(err);
+        } else {
+          instanceData = data;
+
+          intervalId = setInterval(function() {
+            updateClient(instanceData, socket);
+          }, 5000); // poll every five seconds to save on requests
+        }
+      });
     });
-
-    bitnami.launchInstance('bitnami demo security group', 'BITNAMIDEMO', function(err, data) {
-      if(err) {
-        return console.log(err);
-      } else {
-        instanceData = data;
-
-        console.log('The instance should have been created by now', data)
-
-        intervalId = setInterval(function() {
-          updateClient(instanceData, socket);
-        }, 2000); // poll every second
-      }
-    });
-
-    // intervalId = setInterval(function() {
-    //   updateClient('i-11826232', socket);
-    // }, 2000); // poll every second
   });
 
   // Used to stop the servers
